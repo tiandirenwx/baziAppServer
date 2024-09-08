@@ -1,0 +1,87 @@
+global:  # Global configuration.
+  namespace: Development  # Environment type, either Production or Development.
+  env_name: test  # Environment name for non-production environments.
+
+server:  # Server configuration.
+  app: bazi  # Application name for the business.
+  server: paipan  # Process server name.
+  bin_path: /usr/local/trpc/bin/  # Path to binary executable files and framework configuration files.
+  conf_path: /usr/local/trpc/conf/  # Path to business configuration files.
+  data_path: /usr/local/trpc/data/  # Path to business data files.
+  filter:  # List of interceptors for all service handler functions.
+    - simpledebuglog
+    - recovery  # Intercept panics from business processing goroutines created by the framework.
+    - validation
+  service:  # Services provided by the business, can have multiple.
+    - name: bazi.paipan.BaziPaipan_trpc  # Route name for the service.
+      ip: 127.0.0.1  # Service listening IP address, can use placeholder ${ip}. Use either ip or nic, ip takes priority.
+      # nic: eth0
+      port: 8001  # Service listening port, can use placeholder ${port}.
+      network: tcp  # Network listening type: tcp or udp.
+      protocol: trpc  # Application layer protocol: trpc or http.
+      timeout: 1000  # Maximum processing time for requests in milliseconds.
+    
+
+client:  # Backend configuration for client calls.
+  timeout: 1000  # Maximum processing time for all backends.
+  namespace: Development  # Environment for all backends.
+  filter:  # List of interceptors for all backend function calls.
+    - simpledebuglog
+    - validation
+  service:  # Configuration for individual backends.
+    - name: trpc.bazi.paipan.BaziPaipan  # Service name for the backend.
+      namespace: Development  # Environment for the backend.
+      network: tcp  # Network type for the backend: tcp or udp (configuration takes priority).
+      protocol: trpc  # Application layer protocol: trpc or http.
+      target: ip://127.0.0.1:8000  # Service address for requests.
+      timeout: 1000   # Maximum processing time for requests.
+
+#    - name: trpc.bazi.paipan.BaziPaipan         #后端服务协议文件的service name, 如何callee和下面的name一样，那只需要配置一个即可
+#      target: consul://bazi.paipan.BaziPaipan_trpc   #后端服务地址 consul
+#      network: tcp                                 #后端服务的网络类型 tcp udp
+#      protocol: trpc                              #应用层协议 trpc http
+#      timeout: 3000                               #请求最长处理时间
+#      serialization: 0                             #序列化方式 0-pb 1-jce 2-json 3-flatbuffer，默认不要配置
+    
+
+plugins:  # Plugin configuration.
+  log:  # Log configuration.
+    default:  # Default log configuration, supports multiple outputs.
+      - writer: console  # Console standard output (default).
+        level: debug  # Log level for standard output.
+      - writer: file  # Local file log.
+        level: info  # Log level for local file rolling logs.
+        writer_config:
+          filename: ./trpc.log  # Path to store local file rolling logs.
+          max_size: 10  # Maximum size of local file rolling logs in MB.
+          max_backups: 10  # Maximum number of log files.
+          max_age: 7  # Maximum number of days to keep logs.
+          compress: false  # Whether to compress log files.
+
+#  naming:
+#    consul:
+#      address: xx.xx.xx.xx:8500
+##      services:
+##        - bazi.paipan.BaziPaipan_trpc # 一定要与trpc service相同
+##      register: #  默认注册配置，上面的services会使用
+##        interval: 1s
+##        timeout: 1s
+##        tags:
+##          - test
+##        meta:
+##          appid: 1
+##        weight: 10
+##        deregister_critical_service_after: 10m
+#      services_register: #独立注册配置，不同服务可以有不同配置
+#        - service: bazi.paipan.BaziPaipan_trpc # 一定要与trpc service相同
+#          register: #  默认注册配置，上面的services会使用
+#            interval: 1s
+#            timeout: 1s
+#            tags:
+#              - test
+#            meta:
+#              appid: 1
+#            weight: 10
+#            deregister_critical_service_after: 10m
+#      selector:
+#        loadBalancer: random

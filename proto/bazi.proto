@@ -1,0 +1,89 @@
+syntax = "proto3";
+// package内容格式推荐为trpc.{app}.{server}，以trpc为固定前缀，标识这是一个trpc服务协议，app为你的应用名，server为你的服务进程名
+package trpc.bazi.paipan;
+// 注意：这里go_package指定的是协议生成文件pb.go在git上的地址，不要和上面的服务的git仓库地址一样
+
+// 定义服务接口
+service BaziPaipan {
+    rpc CreateBaziPaipan(PaiPanRequest) returns (CreatePaiPanRsp) {}
+    rpc RenderPaiPanImage(PaiPanRequest) returns (RenderPaiPanImageRsp) {}
+}
+
+//{"太初历", "四分历", "大明历", "戊寅元历", "麟德历", "正元历", "应天历", "崇天历", "淳祐历", "授时历"}
+enum Calendar {
+    Calendar_Unknown       = 0;   //未知历法
+    Calendar_TaiChu        = 1;   //太初历
+    Calendar_ShiFen        = 2;   //四分历
+    Calendar_DaMing        = 3;   //祖冲之大明历
+    Calendar_WuYinYuan     = 4;   //戊寅元历
+    Calendar_LinDe         = 5;   //麟德历
+    Calendar_ZhengYuan     = 6;   //正元历
+    Calendar_YingTian      = 7;   //应天历
+    Calendar_ChongTian     = 8;   //崇天历
+    Calendar_ChunYou       = 9;   //淳祐历
+    Calendar_ShouShi       = 10;  //郭守敬授时历
+    Calendar_YouZiPingDong = 11;  //尤武伟子平历-定冬至
+    Calendar_YouZiPingXia  = 12;  //尤武伟子平历-定夏至
+    Calendar_LunarDingQi   = 13;  //现代农历-定气法
+}
+
+enum CalendarType {
+    CalendarType_Unknown   = 0;
+    CalendarType_Gregorian = 1;  //公历
+    CalendarType_Lunar     = 2;  //农历
+    CalendarType_Julian    = 3;  //儒略历
+    CalendarType_Hejra     = 4;  //回历
+}
+// 请求参数
+// --birthday(生日),sex(性别),AST(太阳时 apparent solar time)
+// --lon(出生地经度：longitude),lifa(历法 calendar )
+message PaiPanRequest {
+    int32 year         = 1;
+    int32 month        = 2;
+    int32 day          = 3;
+    int32 hour         = 4;
+    int32 minute       = 5;
+    string name        = 6;   //姓名
+    bool gender        = 7;   //性别
+    bool astFlag       = 8;   //是否真太阳时
+    bool isLeapMonth   = 9;   //只有农历才有用
+    bool isSpeLunar    = 10;  //农历特殊月序才用
+    float longitude    = 11;  //经度
+    int32 calendar     = 12;  //历法
+    int32 calendarType = 13;  //历法类型
+}
+
+message BaziSiZhu {
+    repeated string shishen  = 1;
+    repeated string tiangan  = 2;
+    repeated string dizhi    = 3;
+    repeated string canggan1 = 4;
+    repeated string canggan2 = 5;
+    repeated string canggan3 = 6;
+}
+
+// 响应参数
+message CreatePaiPanRsp {
+    string nonce                 = 1;   //标记
+    string timestamp             = 2;   //时间戳
+    string userName              = 3;   //姓名
+    string gender                = 4;   //性别
+    string shengxiao             = 5;   //生肖
+    string age                   = 6;   //年龄
+    string solarBirth            = 7;   //公历生日或儒略历生日
+    string lunarBirth            = 8;   //农历生日
+    string dateOfBirth           = 9;   //出生年代
+    string dingQiType            = 10;  //定气方式
+    string jieQi                 = 11;  //节气
+    BaziSiZhu bazi               = 12;  //八字盘面信息
+    string qiYun                 = 13;  //起运
+    string jiaoYun               = 14;  //交运
+    repeated string daYun        = 15;  //大运
+    repeated int32 startYear     = 16;  //起于
+    repeated string fleetingYear = 17;  //流年
+    repeated int32 endYear       = 18;  //止于
+}
+
+message RenderPaiPanImageRsp {
+    string image = 1;
+}
